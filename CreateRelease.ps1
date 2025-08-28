@@ -4,20 +4,35 @@ param(
     [string]$IconFile = ".\icon.ico"
 )
 
+<#
+.SYNOPSIS
+    Erstellt eine EXE aus einem PowerShell-Skript mit optionalem Icon.
+#>
+
 if (-not (Get-Command Invoke-PS2EXE -ErrorAction SilentlyContinue)) {
-    Write-Error "Invoke-PS2EXE is not available. Please install the PS2EXE module."
-    Write-Host "You can install it by running:"
+    Write-Error "Invoke-PS2EXE ist nicht verfügbar. Bitte installiere das PS2EXE-Modul."
+    Write-Host "Installiere es mit:"
     Write-Host "    Install-Module -Name PS2EXE -Scope CurrentUser"
     exit 1
 }
 
 if (-not (Test-Path $InputFile)) {
-    Write-Error "Input file '$InputFile' does not exist."
+    Write-Error "Die Eingabedatei '$InputFile' existiert nicht."
     exit 1
 }
 
-Invoke-PS2EXE `
-    -InputFile   $InputFile `
-    -OutputFile  $OutputFile `
-    -IconFile    $IconFile `
-    -NoConsole
+if (-not (Test-Path $IconFile)) {
+    Write-Warning "Icon-Datei '$IconFile' nicht gefunden. Es wird kein Icon verwendet."
+    $IconFile = $null
+}
+
+try {
+    Invoke-PS2EXE `
+        -InputFile   $InputFile `
+        -OutputFile  $OutputFile `
+        -IconFile    $IconFile `
+        -NoConsole
+} catch {
+    Write-Error "Fehler beim Erstellen der EXE: $_"
+    exit 1
+}
