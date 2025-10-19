@@ -7,7 +7,7 @@ Perfekt, wenn du ohne viel Aufwand einen Überblick über dein System brauchst.
 
 ## 📥 Download
 
-[➡️ **Hier herunterladen (v1.0)**](https://github.com/Zorakidd/EasyHardwareInfo/releases/download/v1.0/HardwareInfo.exe)
+[![Download hier](https://img.shields.io/badge/⬇️_Download-hier-blue?style=for-the-badge)](https://github.com/Zorakidd/EasyHardwareInfo/releases/download/v1.0/HardwareInfo.exe)
 
 ---
 
