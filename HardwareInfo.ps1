@@ -14,9 +14,10 @@ if (Test-Path $outFile) { Remove-Item $outFile }
 "`n===== GPU =====" | Out-File $outFile -Append
 try {
     Get-CimInstance Win32_VideoController -ErrorAction Stop |
-        Select-Object Name, AdapterCompatibility, DriverVersion, VideoProcessor |
-        Format-List | Out-File $outFile -Append
-} catch {
+    Select-Object Name, AdapterCompatibility, DriverVersion, VideoProcessor |
+    Format-List | Out-File $outFile -Append
+}
+catch {
     "`nFehler beim Abrufen der GPU-Informationen: $_" | Out-File $outFile -Append
 }
 
@@ -24,9 +25,10 @@ try {
 "`n===== Prozessor =====" | Out-File $outFile -Append
 try {
     Get-CimInstance Win32_Processor -ErrorAction Stop |
-        Select-Object Name, Manufacturer, MaxClockSpeed, NumberOfCores, NumberOfLogicalProcessors |
-        Format-List | Out-File $outFile -Append
-} catch {
+    Select-Object Name, Manufacturer, MaxClockSpeed, NumberOfCores, NumberOfLogicalProcessors |
+    Format-List | Out-File $outFile -Append
+}
+catch {
     "`nFehler beim Abrufen der Prozessor-Informationen: $_" | Out-File $outFile -Append
 }
 
@@ -34,9 +36,10 @@ try {
 "`n===== Mainboard =====" | Out-File $outFile -Append
 try {
     Get-CimInstance Win32_BaseBoard -ErrorAction Stop |
-        Select-Object Manufacturer, Product, SerialNumber, Version |
-        Format-List | Out-File $outFile -Append
-} catch {
+    Select-Object Manufacturer, Product, SerialNumber, Version |
+    Format-List | Out-File $outFile -Append
+}
+catch {
     "`nFehler beim Abrufen der Mainboard-Informationen: $_" | Out-File $outFile -Append
 }
 
@@ -44,9 +47,10 @@ try {
 "`n===== BIOS =====" | Out-File $outFile -Append
 try {
     Get-CimInstance Win32_BIOS -ErrorAction Stop |
-        Select-Object Manufacturer, SMBIOSBIOSVersion, ReleaseDate, SerialNumber, Version |
-        Format-List | Out-File $outFile -Append
-} catch {
+    Select-Object Manufacturer, SMBIOSBIOSVersion, ReleaseDate, SerialNumber, Version |
+    Format-List | Out-File $outFile -Append
+}
+catch {
     "`nFehler beim Abrufen der BIOS-Informationen: $_" | Out-File $outFile -Append
 }
 
@@ -54,10 +58,11 @@ try {
 "`n===== Arbeitsspeicher (RAM) =====" | Out-File $outFile -Append
 try {
     Get-CimInstance Win32_PhysicalMemory -ErrorAction Stop |
-        Select-Object Manufacturer, PartNumber, SerialNumber, Speed,
-        @{Name="Capacity(GB)";Expression={[math]::Round($_.Capacity/1GB,2)}} |
-        Format-List | Out-File $outFile -Append
-} catch {
+    Select-Object Manufacturer, PartNumber, SerialNumber, Speed,
+    @{Name = "Capacity(GB)"; Expression = { [math]::Round($_.Capacity / 1GB, 2) } } |
+    Format-List | Out-File $outFile -Append
+}
+catch {
     "`nFehler beim Abrufen der RAM-Informationen: $_" | Out-File $outFile -Append
 }
 
@@ -65,10 +70,11 @@ try {
 "`n===== Festplatten =====" | Out-File $outFile -Append
 try {
     Get-PhysicalDisk -ErrorAction Stop |
-        Select-Object FriendlyName, MediaType,
-        @{Name="Size(GB)";Expression={[math]::Round($_.Size/1GB,2)}} |
-        Format-List | Out-File $outFile -Append
-} catch {
+    Select-Object FriendlyName, MediaType,
+    @{Name = "Size(GB)"; Expression = { [math]::Round($_.Size / 1GB, 2) } } |
+    Format-List | Out-File $outFile -Append
+}
+catch {
     "`nFehler beim Abrufen der Festplatten-Informationen: $_" | Out-File $outFile -Append
 }
 
