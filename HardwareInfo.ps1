@@ -2,83 +2,67 @@ param(
     [string]$OutputFile = "$env:USERPROFILE\Desktop\Hardware-info.txt"
 )
 
-$outFile = $OutputFile
-
-# Falls Datei schon existiert: löschen
-if (Test-Path $outFile) { Remove-Item $outFile }
-
-# Zeitstempel hinzufügen
-"Hardware-Informationen erstellt am: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File $outFile
-
-# --- GPU ---
-"`n===== GPU =====" | Out-File $outFile -Append
-try {
-    Get-CimInstance Win32_VideoController -ErrorAction Stop |
-    Select-Object Name, AdapterCompatibility, DriverVersion, VideoProcessor |
-    Format-List | Out-File $outFile -Append
-}
-catch {
-    "`nFehler beim Abrufen der GPU-Informationen: $_" | Out-File $outFile -Append
+# Eine Hilfsfunktion ersetzt 6x denselben try/catch-Block
+function Add-Section {
+    param(
+        [System.Text.StringBuilder]$Sb,
+        [string]$Title,
+        [scriptblock]$Query
+    )
+    [void]$Sb.AppendLine().AppendLine("===== $Title =====")
+    try {
+        $out = & $Query | Format-List | Out-String
+        [void]$Sb.Append($out.TrimEnd()).AppendLine()
+    }
+    catch {
+        [void]$Sb.AppendLine("Fehler beim Abrufen der ${Title}-Informationen: $_")
+    }
 }
 
-# --- Prozessor ---
-"`n===== Prozessor =====" | Out-File $outFile -Append
-try {
-    Get-CimInstance Win32_Processor -ErrorAction Stop |
-    Select-Object Name, Manufacturer, MaxClockSpeed, NumberOfCores, NumberOfLogicalProcessors |
-    Format-List | Out-File $outFile -Append
-}
-catch {
-    "`nFehler beim Abrufen der Prozessor-Informationen: $_" | Out-File $outFile -Append
-}
+$sb = [System.Text.StringBuilder]::new(8192)
+[void]$sb.AppendLine("Hardware-Informationen erstellt am: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')")
 
-# --- Mainboard ---
-"`n===== Mainboard =====" | Out-File $outFile -Append
-try {
-    Get-CimInstance Win32_BaseBoard -ErrorAction Stop |
-    Select-Object Manufacturer, Product, SerialNumber, Version |
-    Format-List | Out-File $outFile -Append
-}
-catch {
-    "`nFehler beim Abrufen der Mainboard-Informationen: $_" | Out-File $outFile -Append
-}
+# Eine CIM-Session statt 5 separater Verbindungen
+$cim = New-CimSession
 
-# --- BIOS ---
-"`n===== BIOS =====" | Out-File $outFile -Append
-try {
-    Get-CimInstance Win32_BIOS -ErrorAction Stop |
-    Select-Object Manufacturer, SMBIOSBIOSVersion, ReleaseDate, SerialNumber, Version |
-    Format-List | Out-File $outFile -Append
+Add-Section $sb 'GPU' {
+    Get-CimInstance -CimSession $cim Win32_VideoController -ErrorAction Stop |
+    Select-Object Name, AdapterCompatibility, DriverVersion, VideoProcessor
 }
-catch {
-    "`nFehler beim Abrufen der BIOS-Informationen: $_" | Out-File $outFile -Append
+Add-Section $sb 'Prozessor' {
+    Get-CimInstance -CimSession $cim Win32_Processor -ErrorAction Stop |
+    Select-Object Name, Manufacturer, MaxClockSpeed, NumberOfCores, NumberOfLogicalProcessors
 }
-
-# --- RAM ---
-"`n===== Arbeitsspeicher (RAM) =====" | Out-File $outFile -Append
-try {
-    Get-CimInstance Win32_PhysicalMemory -ErrorAction Stop |
+Add-Section $sb 'Mainboard' {
+    Get-CimInstance -CimSession $cim Win32_BaseBoard -ErrorAction Stop |
+    Select-Object Manufacturer, Product, SerialNumber, Version
+}
+Add-Section $sb 'BIOS' {
+    Get-CimInstance -CimSession $cim Win32_BIOS -ErrorAction Stop |
+    Select-Object Manufacturer, SMBIOSBIOSVersion, ReleaseDate, SerialNumber, Version
+}
+Add-Section $sb 'Arbeitsspeicher (RAM)' {
+    Get-CimInstance -CimSession $cim Win32_PhysicalMemory -ErrorAction Stop |
     Select-Object Manufacturer, PartNumber, SerialNumber, Speed,
-    @{Name = "Capacity(GB)"; Expression = { [math]::Round($_.Capacity / 1GB, 2) } } |
-    Format-List | Out-File $outFile -Append
+    @{Name = 'Capacity(GB)'; Expression = { [math]::Round($_.Capacity / 1GB, 2) } }
 }
-catch {
-    "`nFehler beim Abrufen der RAM-Informationen: $_" | Out-File $outFile -Append
-}
-
-# --- Festplatten ---
-"`n===== Festplatten =====" | Out-File $outFile -Append
-try {
+Add-Section $sb 'Festplatten' {
     Get-PhysicalDisk -ErrorAction Stop |
     Select-Object FriendlyName, MediaType,
-    @{Name = "Size(GB)"; Expression = { [math]::Round($_.Size / 1GB, 2) } } |
-    Format-List | Out-File $outFile -Append
-}
-catch {
-    "`nFehler beim Abrufen der Festplatten-Informationen: $_" | Out-File $outFile -Append
+    @{Name = 'Size(GB)'; Expression = { [math]::Round($_.Size / 1GB, 2) } }
 }
 
-# Hinweis
-"`nFür Gehäuse, Netzteil (PSU) und CPU-Kühler ist eine manuelle Sichtprüfung notwendig." | Out-File $outFile -Append
+Remove-CimSession $cim
 
-Write-Host "Fertig! Alle Infos wurden gespeichert in: $outFile" -ForegroundColor Green
+[void]$sb.AppendLine().AppendLine(
+    'Für Gehäuse, Netzteil (PSU) und CPU-Kühler ist eine manuelle Sichtprüfung notwendig.'
+)
+
+# Genau EIN Schreibvorgang, UTF-8 mit BOM (Umlaute in Notepad korrekt)
+[System.IO.File]::WriteAllText(
+    $OutputFile,
+    $sb.ToString(),
+    [System.Text.UTF8Encoding]::new($true)
+)
+
+Write-Host "Fertig! Alle Infos wurden gespeichert in: $OutputFile" -ForegroundColor Green
