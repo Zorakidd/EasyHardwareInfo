@@ -8,7 +8,7 @@ It reads your GPU, CPU, motherboard, BIOS, RAM, and storage details via Windows 
 
 ## 📥 Download
 
-[![Download here](https://img.shields.io/badge/⬇️_Download-here-blue?style=for-the-badge)](https://github.com/Zorakidd/EasyHardwareInfo/releases/download/v1.0/HardwareInfo.exe)
+[![Download here](https://img.shields.io/badge/⬇️_Download-here-blue?style=for-the-badge)](https://github.com/Zorakidd/EasyHardwareInfo/releases/download/v1.1/HardwareInfo.exe)
 
 Or grab the latest release from the [Releases page](https://github.com/Zorakidd/EasyHardwareInfo/releases).
 
