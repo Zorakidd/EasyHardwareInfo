@@ -47,7 +47,8 @@ Add-Section $sb 'Arbeitsspeicher (RAM)' {
     @{Name = 'Capacity(GB)'; Expression = { [math]::Round($_.Capacity / 1GB, 2) } }
 }
 Add-Section $sb 'Festplatten' {
-    Get-PhysicalDisk -ErrorAction Stop |
+    # Reuse the shared CIM session instead of letting Get-PhysicalDisk open its own implicit connection
+    Get-PhysicalDisk -CimSession $cim -ErrorAction Stop |
     Select-Object FriendlyName, MediaType,
     @{Name = 'Size(GB)'; Expression = { [math]::Round($_.Size / 1GB, 2) } }
 }
